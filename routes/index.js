@@ -8,7 +8,7 @@ const api_controller = require('../controllers/apiController'),
 /* Users
 ____________________________________*/
 
-router.post('/api/users/login', auth.optional, api_controller.login);
+router.post('/api/users/login', auth.optional, api_controller.login_route);
 router.post('/api/users/create', auth.optional, api_controller.create_user);
 
 

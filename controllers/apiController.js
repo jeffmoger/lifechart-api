@@ -2,6 +2,8 @@ const moment = require('moment');
 const passport = require('passport');
 const url = require('url');
 
+require('../auth/passport')
+
 const Fit = require('../models/fitModel');
 const Users = require('../models/userModel');
 
@@ -284,7 +286,8 @@ exports.data_sources = function(req, res, next) {
 /*_________________________________________________________________________
 Login Route______________________________________________________________*/
 
-exports.login = function(req, res, next) {
+exports.login_route = function(req, res, next) {
+  
   const { body: { user } } = req;
 
   if(!user.email) {

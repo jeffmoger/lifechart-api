@@ -21,7 +21,7 @@ const UsersSchema = new Schema(
   date_of_birth: {type: Date},
   email: {type: String},
   tz: {type: String},
-  googleFit: {type: Boolean},
+  googleFit: {type: Boolean, default: false},
   hash: {type: String},
   salt: {type: String},
   createdAt: Number,
@@ -93,7 +93,8 @@ UsersSchema.methods.toAuthJSON = function() {
     id: this._id,
     email: this.email,
     token: this.generateJWT(),
-    exp: generateTokenExpiryDate(days_token_valid)
+    exp: generateTokenExpiryDate(days_token_valid),
+    googleFit: this.googleFit
   };
 };
 

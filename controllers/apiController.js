@@ -174,6 +174,20 @@ exports.data_get = function(req, res, next) {
     });
 }
 
+
+/* New route for first time Google Authentication
+____________________________________*/
+
+exports.get_google_token = function(req, res, next) {
+  const userID = req.headers.id;
+  const callbackUrl = req.path;
+  
+  returnAuthUrl(callbackUrl, userID)
+  .then(response => res.json(response))
+}
+
+
+
 /* Google Authentication redirect page
 ____________________________________*/
 

@@ -74,7 +74,7 @@ async function returnAuthUrl(callbackUrl, userID) {
     const oauth2Client = new google.auth.OAuth2(
         process.env.G_CLIENT_ID,
         process.env.G_CLIENT_Secret,
-        "https://localhost/view/get_data"
+        'https://localhost/settings/return_from_google'
     );
     const scopes = [ 
         "https://www.googleapis.com/auth/fitness.activity.read",

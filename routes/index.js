@@ -16,6 +16,7 @@ router.post('/api/users/create', auth.optional, api_controller.create_user);
 ____________________________________*/
 
 router.get('/api/data', auth.required, api_controller.data_get);
+router.get('/api/get_google_token', auth.required, api_controller.get_google_token);
 
 router.get('/api/get_token', auth.required, api_controller.get_token);
 router.get('/api/get_data', auth.required, api_controller.return_data);

@@ -178,7 +178,7 @@ exports.data_get = function(req, res, next) {
 /* New route for first time Google Authentication
 ____________________________________*/
 
-exports.get_google_token = function(req, res, next) {
+exports.get_google_code = function(req, res, next) {
   const userID = req.headers.id;
   const callbackUrl = req.path;
   
@@ -277,6 +277,32 @@ exports.return_data = (req, res, next) => {
     container()
   }
 
+  /* Google get access tokens
+____________________________________*/
+
+exports.get_google_auth = (req, res, next) => {
+    async function container() {
+      try {
+        const {id, code} = req.headers;   
+        const oauth2Client = newOauth2Client();
+        const { tokens } = await oauth2Client.getToken(code);
+        oauth2Client.setCredentials(tokens);
+        tokens.userID = id;
+        saveTokens(tokens)
+        updateGoogleFit(id)
+        .then(() => res.json(tokens))
+      } catch(err) {
+        console.log(err)
+        res.json(err)
+      }
+    };
+    container()
+  }
+
+
+
+
+
 exports.data_sources = function(req, res, next) {
   const userID = req.user.id
   getUserTokenFromProfile(userID)
@@ -336,6 +362,9 @@ exports.login_route = function(req, res, next) {
     return status(400).info;
   })(req, res, next);
 };
+
+
+
 
 
 /*_________________________________________________________________________

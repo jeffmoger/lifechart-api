@@ -52,7 +52,7 @@ function newOauth2Client() {
     const oauth2Client = new google.auth.OAuth2(
         process.env.G_CLIENT_ID,
         process.env.G_CLIENT_Secret,
-        "https://localhost/view/get_data"
+        "https://localhost/settings/return_from_google"
     );
     return oauth2Client;
 }

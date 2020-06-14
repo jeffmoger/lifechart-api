@@ -9,21 +9,22 @@ const api_controller = require('../controllers/apiController'),
 ____________________________________*/
 
 router.post('/api/users/login', auth.optional, api_controller.login_route);
-
 router.post('/api/users/create', auth.optional, api_controller.create_user);
 
 
 /* Data
 ____________________________________*/
 
-router.get('/api/data', auth.required, api_controller.data_get);
+
 router.get('/api/get_google_code', auth.required, api_controller.get_google_code);
 router.get('/api/get_google_auth', auth.required, api_controller.get_google_auth);
 
-router.get('/api/get_token', auth.required, api_controller.get_token);
+router.get('/api/move_data_from_google', auth.required, api_controller.move_data_from_google);
+router.get('/api/get_range_data', auth.required, api_controller.get_range_data);
+
+
+//router.get('/api/get_token', auth.required, api_controller.get_token);
 //router.get('/api/get_data', auth.required, api_controller.return_data);
-
-
 
 
 

@@ -36,9 +36,206 @@ const dataTypeArray = [
 
 
 /*_________________________________________________________________________
-Gets data from Google Fit________________________________________________*/
+Login Route______________________________________________________________*/
 
-exports.data_get = function(req, res, next) {
+exports.login_route = function(req, res, next) {
+  
+  const { body: { user } } = req;
+
+  if(!user.email) {
+    return res.status(422).json({
+      errors: {
+        email: 'is required',
+      },
+    });
+  }
+
+  if(!user.password) {
+    return res.status(422).json({
+      errors: {
+        password: 'is required',
+      },
+    });
+  }
+  return passport.authenticate('local', { session: false }, (err, passportUser, info) => {
+    if(err || !passportUser) {
+      return res.status(400).json({
+        message: 'Something is not right3',
+        user   : passportUser
+      });
+    }
+
+    if(passportUser) {
+      const user = passportUser;
+      user.token = passportUser.generateJWT();
+      return res.json({ user: user.toAuthJSON() });
+    }
+
+    return status(400).info;
+  })(req, res, next);
+};
+
+
+
+
+
+/*_________________________________________________________________________
+Create New User Route____________________________________________________*/
+
+exports.create_user = function(req, res, next) {
+  const { body: {user } } = req;      
+
+  if(!user.email) {
+    return res.status(422).json({
+      errors: {
+        email: 'is required',
+      },
+    });
+  }
+  if(!user.password) {
+    return res.status(422).json({
+      errors: {
+        password: 'is required',
+      },
+    });
+  }
+  console.log(user)
+  const finalUser = new Users(user);
+  finalUser.setPassword(user.password);
+  return finalUser.save()
+  .then((finalUser) => res.json({ user: finalUser.toAuthJSON() }));
+};
+
+
+
+/*_________________________________________________________________________
+New route for first time Google Authentication___________________________*/
+
+exports.get_google_code = function(req, res, next) {
+  const userID = req.headers.id;
+  const callbackUrl = req.path;
+  
+  returnAuthUrl(callbackUrl, userID)
+  .then(response => res.json(response))
+}
+
+
+
+/*_________________________________________________________________________
+Google get first time access tokens______________________________________*/
+
+exports.get_google_auth = (req, res, next) => {
+  async function container() {
+    try {
+      const {id, code} = req.headers;   
+      const oauth2Client = newOauth2Client();
+      const { tokens } = await oauth2Client.getToken(code);
+      oauth2Client.setCredentials(tokens);
+      tokens.userID = id;
+      saveTokens(tokens)
+      updateGoogleFit(id)
+      .then(() => res.json(tokens))
+    } catch(err) {
+      console.log(err)
+      res.json(err)
+    }
+  };
+  container()
+}
+
+
+ /*_________________________________________________________________________
+Get list of DataSourceIds from Google______________________________________*/
+
+exports.data_sources = function(req, res, next) {
+  const userID = req.user.id
+  getUserTokenFromProfile(userID)
+  .then(async (token) => {
+    return await callAuthToRefreshToken(token)
+  })
+  .then(async (token) => {
+    const { credentials } = token
+    const {data} = await getDataSourcesFromGoogle(credentials.access_token)
+    return data
+  })
+  .then((response) => {
+    let myList = [...new Set(response.dataSource.map(x => x.dataType.name))]
+    console.log(myList)
+    return response.dataSource
+  })
+  .then((response) => res.json(response) )
+  .catch(err => console.log(err))
+}
+
+
+/*_________________________________________________________________________
+Google Authentication redirect page_______________________________________*/
+
+exports.move_data_from_google = function(req, res, next) {
+
+  const callbackUrl = req.path
+  const userID = req.headers.id
+  let days = 30
+
+
+  async function container() {
+    try {
+      await getUserProfile(userID) //check if userProfile has googleFit 
+        .then(async profile => {
+          if (profile.googleFit) {
+            console.log('User has googleFit set to true.')
+            return tokenFromProfile = await getUserTokenFromProfile(userID)
+          } else {
+            console.log('User has not set googleFit before. Redirecting through returnAuthUrl.')
+            returnAuthUrl(callbackUrl, userID)
+              .then(response => res.redirect(response))
+          }
+        })
+        .then(async token => {
+          if (token) {
+            if (checkTokenHasExpired(token)) {
+              console.log('Saved token has expired. Using refresh_token to call oAuth')
+              const { credentials } = await callAuthToRefreshToken(token)
+              return credentials
+            } else {
+              console.log('Saved token from profile was still good.')
+              token.fromProfile = true
+              return token
+            }
+          } else {
+            console.log('Could not find token. Redirecting back through returnAuthUrl')
+            returnAuthUrl(callbackUrl, userID)
+              .then(response => res.redirect(response))
+          }
+        })
+        .then(credentials => {
+          if (credentials.fromProfile) {
+            console.log('Skipping save to profile')
+            return credentials
+          }
+          console.log(`New token will expire:  ${credentials.expiry_date}.`)
+          console.log(`Saving new token to profile.`)
+          saveTokenToProfile(userID, credentials);
+          return credentials
+        })
+        .then(tokens => moveDataFromGoogleToMongoDB(days, userID, tokens, dataTypeArray))
+        .then(response => {
+          console.log('Successfuly ran moveDataFromGoogleToMongoDB')
+          res.json(response)})
+      }
+    catch(err) {
+      console.log(err)
+    }
+  }
+  container();
+  }
+
+
+
+/*_________________________________________________________________________
+Gets data from Database__________________________________________________*/
+
+exports.get_range_data = function(req, res, next) {
   const userID = req.payload.id
   const days = 14;
   const fields = 'startTimeMillis endTimeMillis value' 
@@ -173,231 +370,3 @@ exports.data_get = function(req, res, next) {
       res.json('error')
     });
 }
-
-
-/* New route for first time Google Authentication
-____________________________________*/
-
-exports.get_google_code = function(req, res, next) {
-  const userID = req.headers.id;
-  const callbackUrl = req.path;
-  
-  returnAuthUrl(callbackUrl, userID)
-  .then(response => res.json(response))
-}
-
-
-
-/* Google Authentication redirect page
-____________________________________*/
-
-exports.get_token = function(req, res, next) {
-
-  const callbackUrl = req.path
-  const userID = req.headers.id
-  let days = 30
-
-
-  async function container() {
-    try {
-      await getUserProfile(userID) //check if userProfile has googleFit 
-        .then(async profile => {
-          if (profile.googleFit) {
-            console.log('User has googleFit set to true.')
-            return tokenFromProfile = await getUserTokenFromProfile(userID)
-          } else {
-            console.log('User has not set googleFit before. Redirecting through returnAuthUrl.')
-            returnAuthUrl(callbackUrl, userID)
-              .then(response => res.redirect(response))
-          }
-        })
-        .then(async token => {
-          if (token) {
-            if (checkTokenHasExpired(token)) {
-              console.log('Saved token has expired. Using refresh_token to call oAuth')
-              const { credentials } = await callAuthToRefreshToken(token)
-              return credentials
-            } else {
-              console.log('Saved token from profile was still good.')
-              token.fromProfile = true
-              return token
-            }
-          } else {
-            console.log('Could not find token. Redirecting back through returnAuthUrl')
-            returnAuthUrl(callbackUrl, userID)
-              .then(response => res.redirect(response))
-          }
-        })
-        .then(credentials => {
-          if (credentials.fromProfile) {
-            console.log('Skipping save to profile')
-            return credentials
-          }
-          console.log(`New token will expire:  ${credentials.expiry_date}.`)
-          console.log(`Saving new token to profile.`)
-          saveTokenToProfile(userID, credentials);
-          return credentials
-        })
-        .then(tokens => moveDataFromGoogleToMongoDB(days, userID, tokens, dataTypeArray))
-        //.then((response) => res.render('user_settings', { title: 'Settings4', link: 'refresh data', message: 'Token and Data successfully refreshed.', updateArray: response}))
-        .then(response => {
-          console.log('Successfuly ran moveDataFromGoogleToMongoDB')
-          res.json(response)})
-      }
-    catch(err) {
-      console.log(err)
-    }
-  }
-  container();
-  }
-  
-  /* Google get access tokens
-____________________________________*/
-
-exports.return_data = (req, res, next) => {
-  let days = 30
-    async function container() {
-      //Parse return url for code
-      const queryObject = url.parse(req.url, true).query;
-      //create new client
-      const oauth2Client = newOauth2Client();
-      //get token object from google
-      const { tokens } = await oauth2Client.getToken(queryObject.code);
-      oauth2Client.setCredentials(tokens)
-      //add userid to token object and save to MongoDB
-      tokens.userID = req.user.id
-      saveTokens(tokens)
-      //Update user profile to set googleFit to true
-      updateGoogleFit(req.user.id)
-        .then(() => moveDataFromGoogleToMongoDB(days, req.user.id, tokens, dataTypeArray))
-        //.then((response) => res.render('user_settings', { title: 'Settings5', link: 'refresh data', message: `Google connection successful - ${days} days of data retrieved.`, updateArray: response}))
-        .then(response => res.json(response))
-        .catch(err => console.log(err))
-    };
-    container()
-  }
-
-  /* Google get access tokens
-____________________________________*/
-
-exports.get_google_auth = (req, res, next) => {
-    async function container() {
-      try {
-        const {id, code} = req.headers;   
-        const oauth2Client = newOauth2Client();
-        const { tokens } = await oauth2Client.getToken(code);
-        oauth2Client.setCredentials(tokens);
-        tokens.userID = id;
-        saveTokens(tokens)
-        updateGoogleFit(id)
-        .then(() => res.json(tokens))
-      } catch(err) {
-        console.log(err)
-        res.json(err)
-      }
-    };
-    container()
-  }
-
-
-
-
-
-exports.data_sources = function(req, res, next) {
-  const userID = req.user.id
-  getUserTokenFromProfile(userID)
-  .then(async (token) => {
-    return await callAuthToRefreshToken(token)
-  })
-  .then(async (token) => {
-    const { credentials } = token
-    const {data} = await getDataSourcesFromGoogle(credentials.access_token)
-    return data
-  })
-  .then((response) => {
-    let myList = [...new Set(response.dataSource.map(x => x.dataType.name))]
-    console.log(myList)
-    return response.dataSource
-  })
-  .then((response) => res.json(response) )
-  .catch(err => console.log(err))
-}
-    
-/*_________________________________________________________________________
-Login Route______________________________________________________________*/
-
-exports.login_route = function(req, res, next) {
-  
-  const { body: { user } } = req;
-
-  if(!user.email) {
-    return res.status(422).json({
-      errors: {
-        email: 'is required',
-      },
-    });
-  }
-
-  if(!user.password) {
-    return res.status(422).json({
-      errors: {
-        password: 'is required',
-      },
-    });
-  }
-  return passport.authenticate('local', { session: false }, (err, passportUser, info) => {
-    if(err || !passportUser) {
-      return res.status(400).json({
-        message: 'Something is not right3',
-        user   : passportUser
-      });
-    }
-
-    if(passportUser) {
-      const user = passportUser;
-      user.token = passportUser.generateJWT();
-      return res.json({ user: user.toAuthJSON() });
-    }
-
-    return status(400).info;
-  })(req, res, next);
-};
-
-
-
-
-
-/*_________________________________________________________________________
-Create New User Route____________________________________________________*/
-
-exports.create_user = function(req, res, next) {
-  const { body: {user } } = req;      
-
-  if(!user.email) {
-    return res.status(422).json({
-      errors: {
-        email: 'is required',
-      },
-    });
-  }
-  if(!user.password) {
-    return res.status(422).json({
-      errors: {
-        password: 'is required',
-      },
-    });
-  }
-  console.log(user)
-  const finalUser = new Users(user);
-  finalUser.setPassword(user.password);
-  return finalUser.save()
-  .then((finalUser) => res.json({ user: finalUser.toAuthJSON() }));
-};
-
-
-      
-/*_________________________________________________________________________
-FUNCTIONS________________________________________________________________*/
-
-
-

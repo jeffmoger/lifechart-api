@@ -52,7 +52,7 @@ function newOauth2Client() {
     const oauth2Client = new google.auth.OAuth2(
         process.env.G_CLIENT_ID,
         process.env.G_CLIENT_Secret,
-        "https://localhost/settings/return_from_google"
+        process.env.G_REDIRECT_URIS
     );
     return oauth2Client;
 }
@@ -74,7 +74,7 @@ async function returnAuthUrl(callbackUrl, userID) {
     const oauth2Client = new google.auth.OAuth2(
         process.env.G_CLIENT_ID,
         process.env.G_CLIENT_Secret,
-        'https://localhost/settings/return_from_google'
+        process.env.G_REDIRECT_URIS
     );
     const scopes = [ 
         "https://www.googleapis.com/auth/fitness.activity.read",

@@ -6,7 +6,7 @@ const createError = require('http-errors'),
       mongoose = require('mongoose'),
       cors = require('cors');
 
-const indexRouter = require('./routes/index');
+const apiRouter = require('./routes/index');
 
 const app = express();
 
@@ -25,14 +25,26 @@ mongoose.connect(mongoDB, {
 const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 
+app.use(express.static(path.join(__dirname, 'build')))
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(cors());
 
+app.get('/settings/return_from_google', (req, res) => {
+  console.log(__dirname);
+  res.sendFile(path.join(__dirname, 'build', 'index.html'))
+});
+
+app.get('/', (req, res) => {
+  console.log('Serving  React App');
+  res.sendFile(path.join(__dirname, 'build', 'index.html'))
+});
+
+
 //Use Routes
-app.use('/', indexRouter);
+app.use('/api', apiRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

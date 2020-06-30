@@ -51,7 +51,7 @@ function checkTokenHasExpired(token) {
 function newOauth2Client() {
     const oauth2Client = new google.auth.OAuth2(
         process.env.G_CLIENT_ID,
-        process.env.G_CLIENT_Secret,
+        process.env.G_CLIENT_SECRET,
         process.env.G_REDIRECT_URIS
     );
     return oauth2Client;
@@ -73,7 +73,7 @@ async function callGoogle(url) {
 async function returnAuthUrl(callbackUrl, userID) {
     const oauth2Client = new google.auth.OAuth2(
         process.env.G_CLIENT_ID,
-        process.env.G_CLIENT_Secret,
+        process.env.G_CLIENT_SECRET,
         process.env.G_REDIRECT_URIS
     );
     const scopes = [ 

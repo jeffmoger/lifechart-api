@@ -42,6 +42,11 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'build', 'index.html'))
 });
 
+app.get('/test', (req, res) => {
+  console.log('Serving  Test');
+  res.send('test okay')
+});
+
 
 //Use Routes
 app.use('/api', apiRouter);

@@ -58,11 +58,17 @@ exports.login_route = function(req, res, next) {
     });
   }
   return passport.authenticate('local', { session: false }, (err, passportUser, info) => {
-    if(err || !passportUser) {
+    if(err) {
       return res.status(400).json({
         message: 'Something is not right3',
         user   : passportUser
       });
+    }
+
+    if (!passportUser) {
+      return res.status(404).json({
+        message: 'User does not exist.'
+      })
     }
 
     if(passportUser) {

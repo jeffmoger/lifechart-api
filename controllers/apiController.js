@@ -243,7 +243,7 @@ Gets data from Database__________________________________________________*/
 
 exports.get_range_data = function(req, res, next) {
   const userID = req.payload.id
-  const days = 14;
+  const days = 60;
   const fields = 'startTimeMillis endTimeMillis value' 
 
   function whatType(obj){

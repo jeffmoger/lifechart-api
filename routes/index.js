@@ -3,22 +3,20 @@ const router = require('express').Router();
 const api_controller = require('../controllers/apiController'),
       auth = require('../auth/auth')
 
-
-
-
-
-
-
-
-
 /* Users
 ____________________________________*/
 
 router.post('/users/login', auth.optional, api_controller.login_route);
 router.post('/users/create', auth.optional, api_controller.create_user);
 
+/* User Data
+____________________________________*/
 
-/* Data
+router.post('/items/create', auth.required, api_controller.create_item)
+//router.get('/items/read', auth.required, api_controller.read_items)
+
+
+/* Google Data
 ____________________________________*/
 
 

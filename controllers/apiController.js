@@ -6,6 +6,7 @@ require('../auth/passport')
 
 const Fit = require('../models/fitModel');
 const Users = require('../models/userModel');
+const Items = require('../models/itemModel');
 
 const { 
   getUserProfile,
@@ -151,7 +152,7 @@ exports.get_google_auth = (req, res, next) => {
 
 
  /*_________________________________________________________________________
-Get list of DataSourceIds from Google______________________________________*/
+Get list of DataSourceIds from Google_____________________________________*/
 
 exports.data_sources = function(req, res, next) {
   const userID = req.user.id
@@ -175,7 +176,7 @@ exports.data_sources = function(req, res, next) {
 
 
 /*_________________________________________________________________________
-Google Authentication redirect page_______________________________________*/
+Google Authentication redirect page______________________________________*/
 
 exports.move_data_from_google = function(req, res, next) {
 
@@ -239,7 +240,7 @@ exports.move_data_from_google = function(req, res, next) {
 
 
 /*_________________________________________________________________________
-Gets data from Database__________________________________________________*/
+Get data from Database___________________________________________________*/
 
 exports.get_range_data = function(req, res, next) {
   const userID = req.payload.id
@@ -375,4 +376,15 @@ exports.get_range_data = function(req, res, next) {
       console.log(err);
       res.json('error')
     });
+}
+
+/*_________________________________________________________________________
+Create New Records in Database __________________________________________*/
+
+exports.create_item = async function(req, res, next) {
+   const { item } = req.body;
+   item.userID = req.payload.id;
+   const newItem = new Items(item);
+   return newItem.save()
+   .then((newItem) => res.json(newItem))
 }

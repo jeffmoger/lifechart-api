@@ -20,6 +20,7 @@ const UsersSchema = new Schema(
   family_name: {type: String},
   date_of_birth: {type: Date},
   email: {type: String},
+  weight: {type: Number},
   tz: {type: String},
   googleFit: {type: Boolean, default: false},
   hash: {type: String},

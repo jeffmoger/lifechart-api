@@ -113,7 +113,20 @@ exports.create_user = function(req, res, next) {
   .then((finalUser) => res.json({ user: finalUser.toAuthJSON() }));
 };
 
+/*_________________________________________________________________________
+Read User profile data __________________________________________________*/
 
+exports.read_user = async function(req, res, next) {
+  const userID = req.headers.id;
+  await Users.findById(userID, 'first_name family_name date_of_birth email weight googleFit')
+  .exec((err, profile) => {
+    if (err) {
+      res.status(400).send(err)
+    } else {
+      res.json(profile)
+    }
+  })
+}
 
 /*_________________________________________________________________________
 New route for first time Google Authentication___________________________*/
@@ -388,3 +401,7 @@ exports.create_item = async function(req, res, next) {
    return newItem.save()
    .then((newItem) => res.json(newItem))
 }
+
+/*_________________________________________________________________________
+Read user profile data __________________________________________________*/
+

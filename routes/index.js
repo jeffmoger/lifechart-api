@@ -8,6 +8,7 @@ ____________________________________*/
 
 router.post('/users/login', auth.optional, api_controller.login_route);
 router.post('/users/create', auth.optional, api_controller.create_user);
+router.get('/users/read', auth.required, api_controller.read_user);
 
 /* User Data
 ____________________________________*/

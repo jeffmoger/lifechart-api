@@ -21,6 +21,7 @@ const UsersSchema = new Schema(
   date_of_birth: {type: Date},
   email: {type: String},
   weight: {type: Number},
+  daily_calorie_goal: {type: Number},
   tz: {type: String},
   googleFit: {type: Boolean, default: false},
   hash: {type: String},

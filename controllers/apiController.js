@@ -129,6 +129,25 @@ exports.read_user = async function(req, res, next) {
 }
 
 /*_________________________________________________________________________
+Read User profile data __________________________________________________*/
+
+exports.edit_user = async function(req, res, next) {
+  const userID = req.headers.id;
+  const { body } = req;
+  await Users.findByIdAndUpdate(userID, body, {new: true})
+  .exec((err, result) => {
+    if (err) {
+      res.status(400).send(err)
+    } else {
+      let { salt, hash, googleFit, _id, createdAt, __v, ...rest } = result._doc
+      res.json(rest);
+    }
+  })
+}
+
+
+
+/*_________________________________________________________________________
 New route for first time Google Authentication___________________________*/
 
 exports.get_google_code = function(req, res, next) {

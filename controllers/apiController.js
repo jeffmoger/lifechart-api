@@ -7,6 +7,7 @@ require('../auth/passport')
 const Fit = require('../models/fitModel');
 const Users = require('../models/userModel');
 const Items = require('../models/itemModel');
+const Symptom = require('../models/symptomModel');
 
 const { 
   getUserProfile,
@@ -118,7 +119,7 @@ Read User profile data __________________________________________________*/
 
 exports.read_user = async function(req, res, next) {
   const userID = req.headers.id;
-  await Users.findById(userID, 'first_name family_name date_of_birth email weight googleFit')
+  await Users.findById(userID, 'first_name family_name date_of_birth email weight googleFit daily_calorie_goal weight_goal')
   .exec((err, profile) => {
     if (err) {
       res.status(400).send(err)
@@ -144,6 +145,41 @@ exports.edit_user = async function(req, res, next) {
     }
   })
 }
+
+
+/*_________________________________________________________________________
+Symptoms ________________________________________________________________*/
+
+exports.create_symptom = async function(req, res, next) {
+  const userID = req.headers.id;
+  const symptom = req.body;
+  symptom.userID = userID;
+  const newSymptom = new Symptom(symptom);
+  const response = await newSymptom.save();
+  return res.json(response);
+}
+
+exports.read_symptom = function(req, res, next) {
+  const userID = req.headers.id;
+  Symptom.find({userID: userID}, function(err, arr) {
+    if (err) res.send(err);
+    if (arr) res.json(arr);
+  });
+}
+
+exports.update_symptom = async function(req, res, next) {
+  const userID = req.headers.id;
+  const { body } = req;
+  res.send('edit symptom');
+}
+
+exports.delete_symptom = async function(req, res, next) {
+  const userID = req.headers.id;
+  const { body } = req;
+  res.send('delete symptom');
+}
+
+
 
 
 

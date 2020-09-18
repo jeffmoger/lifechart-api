@@ -11,6 +11,14 @@ router.post('/users/create', auth.optional, api_controller.create_user);
 router.get('/users/read', auth.required, api_controller.read_user);
 router.post('/users/edit', auth.required, api_controller.edit_user);
 
+/* Symptoms
+____________________________________*/
+
+router.post('/symptoms/create', auth.optional, api_controller.create_symptom);
+router.post('/symptoms/read', auth.optional, api_controller.read_symptom);
+router.post('/symptoms/update', auth.optional, api_controller.update_symptom);
+router.post('/symptoms/delete', auth.optional, api_controller.delete_symptom);
+
 /* User Data
 ____________________________________*/
 

@@ -168,15 +168,27 @@ exports.read_symptom = function(req, res, next) {
 }
 
 exports.update_symptom = async function(req, res, next) {
-  const userID = req.headers.id;
-  const { body } = req;
-  res.send('edit symptom');
+  const { body, headers } = req;
+  await Symptom.findByIdAndUpdate(headers.id, body, {new: true})
+  .exec((err, result) => {
+    if (err) {
+      res.status(400).send(err)
+    } else {
+      res.json(result);
+    }
+  })
 }
 
 exports.delete_symptom = async function(req, res, next) {
-  const userID = req.headers.id;
-  const { body } = req;
-  res.send('delete symptom');
+  const { headers } = req;
+  await Symptom.findByIdAndDelete(headers.id)
+  .exec((err, result) => {
+    if (err) {
+      res.status(400).send(err)
+    } else {
+      res.json(result);
+    }
+  })
 }
 
 

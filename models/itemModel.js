@@ -8,6 +8,7 @@ const ItemSchema = new Schema(
         startTimeMillis: {type: Number},
         endTimeMillis: {type: Number},
         value: {type: Array},
+        note: {type: String},
         createdAt: Number,
         updatedAt: Number
     },

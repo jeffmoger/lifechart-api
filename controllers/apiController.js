@@ -1,6 +1,5 @@
 const moment = require('moment');
 const passport = require('passport');
-const url = require('url');
 
 require('../auth/passport')
 
@@ -22,7 +21,16 @@ const {
   saveTokenToProfile,
   callAuthToRefreshToken,
   checkTokenHasExpired
-} = require('./functions')
+} = require('./functions');
+
+const {
+  parseDateRange,
+  countDays,
+  getData,
+  groupData
+} = require('./item_functions');
+
+//const { json } = require('body-parser');
 
 
 
@@ -462,13 +470,34 @@ exports.get_range_data = function(req, res, next) {
 Create New Records in Database __________________________________________*/
 
 exports.create_item = async function(req, res, next) {
-   const { item } = req.body;
-   item.userID = req.payload.id;
-   const newItem = new Items(item);
-   return newItem.save()
-   .then((newItem) => res.json(newItem))
+  const { item } = req.body;
+  item.userID = req.payload.id;
+  try {
+    const newItem = new Items(item);
+    return newItem.save()
+    .then((newItem) => {
+      res.json(newItem)
+    })
+  } catch(err) {
+    res.json(err);
+  }
 }
 
 /*_________________________________________________________________________
-Read user profile data __________________________________________________*/
+Read user items data ____________________________________________________*/
 
+exports.read_items = async function(req, res, next) {
+  const userID = req.payload.id;
+  const { category, date_range } = req.params; 
+  const [start,end] = parseDateRange(date_range);
+  const days = countDays(start, end);
+  
+  try {
+    const data = await getData(userID, start, end, category);
+    const categories = [...new Set(data.map(x => x.dataTypeName))];
+    const finalData = groupData(data, categories, start, days);
+    res.json(finalData);
+  } catch(err) {
+    res.json(err);
+  }
+}

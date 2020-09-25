@@ -24,7 +24,11 @@ ____________________________________*/
 
 router.post('/items/create', auth.required, api_controller.create_item)
 //router.get('/items/read', auth.required, api_controller.read_items)
-
+router.get('/items/read', auth.required, api_controller.read_items)
+router.get([
+  '/items/:category',
+  '/items/:category/:date_range'
+], auth.required, api_controller.read_items)
 
 /* Google Data
 ____________________________________*/

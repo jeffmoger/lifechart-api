@@ -303,6 +303,10 @@ async function copyGoogleToDB(days, userID, token, dataTypeArray) {
     return 'done'
 }
 
+
+
+
+
 module.exports = {
     setDateRange,
     getUserProfile,

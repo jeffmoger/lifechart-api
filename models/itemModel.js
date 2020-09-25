@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const moment = require('moment')
 const { Schema } = mongoose;
 
 const ItemSchema = new Schema(
@@ -17,5 +18,11 @@ const ItemSchema = new Schema(
     timestamps: { currentTime: () => Math.floor(Date.now() / 1000)}
     }
 );
+
+ItemSchema
+.virtual('startTime')
+.get(function () {
+    return (this.startTimeMillis ? moment(this.startTimeMillis).format('LL') : '');
+});
 
 module.exports = mongoose.model('Item', ItemSchema, 'item_data');

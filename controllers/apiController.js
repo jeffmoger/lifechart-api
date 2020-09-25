@@ -331,7 +331,8 @@ exports.move_data_from_google = function(req, res, next) {
 Get data from Database___________________________________________________*/
 
 exports.get_range_data = function(req, res, next) {
-  const userID = req.payload.id
+  const userID = req.payload.id;
+  const { date_range } = req.params; 
   const days = 60;
   const fields = 'startTimeMillis endTimeMillis value' 
 
@@ -428,7 +429,7 @@ exports.get_range_data = function(req, res, next) {
   };
 
   const fetchData = async (userID, dateRangeArray, dataTypeArray) => {
-    const [ start, end, dateRange ] = dateRangeArray
+    const [ start, end ] = dateRangeArray
     const [ title, dataTypeName, x, group ] = dataTypeArray
     const data = {};
     data.title = title;
@@ -448,7 +449,7 @@ exports.get_range_data = function(req, res, next) {
     try {
       let container = [];
       const promises = dataTypeArray.map(async (dataName, idx) => {
-        await fetchData(userID, setDateRange(days), dataName)
+        await fetchData(userID, parseDateRange(date_range), dataName)
           .then(response => container.push(response))
       });
       await Promise.all(promises)

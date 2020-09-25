@@ -38,7 +38,10 @@ router.get('/get_google_code', auth.required, api_controller.get_google_code);
 router.get('/get_google_auth', auth.required, api_controller.get_google_auth);
 
 router.get('/move_data_from_google', auth.required, api_controller.move_data_from_google);
-router.get('/get_range_data', auth.required, api_controller.get_range_data);
+router.get([
+  '/get_range_data',
+  '/get_range_data/:date_range'
+], auth.required, api_controller.get_range_data);
 
 
 //router.get('/api/get_token', auth.required, api_controller.get_token);

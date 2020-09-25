@@ -5,7 +5,7 @@ const Items = require('../models/itemModel');
 Export Functions ________________________________________________________*/
 
 function parseDateRange(date_range) {
-  // Returns array of NUMBER for start and end date in milliseconds
+  // Returns array of start and end date in milliseconds
   let arr, start, end
   if (date_range) {
       arr = date_range.split('_');

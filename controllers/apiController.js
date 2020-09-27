@@ -126,7 +126,7 @@ exports.create_user = function(req, res, next) {
 Read User profile data __________________________________________________*/
 
 exports.read_user = async function(req, res, next) {
-  const userID = req.headers.id;
+  const userID = req.payload.id;
   await Users.findById(userID, 'first_name family_name date_of_birth email weight googleFit daily_calorie_goal weight_goal')
   .exec((err, profile) => {
     if (err) {
@@ -141,7 +141,7 @@ exports.read_user = async function(req, res, next) {
 Read User profile data __________________________________________________*/
 
 exports.edit_user = async function(req, res, next) {
-  const userID = req.headers.id;
+  const userID = req.payload.id;
   const { body } = req;
   await Users.findByIdAndUpdate(userID, body, {new: true})
   .exec((err, result) => {
@@ -159,7 +159,7 @@ exports.edit_user = async function(req, res, next) {
 Symptoms ________________________________________________________________*/
 
 exports.create_symptom = async function(req, res, next) {
-  const userID = req.headers.id;
+  const userID = req.payload.id;
   const symptom = req.body;
   symptom.userID = userID;
   const newSymptom = new Symptom(symptom);
@@ -168,7 +168,7 @@ exports.create_symptom = async function(req, res, next) {
 }
 
 exports.read_symptom = function(req, res, next) {
-  const userID = req.headers.id;
+  const userID = req.payload.id;
   Symptom.find({userID: userID}, function(err, arr) {
     if (err) res.send(err);
     if (arr) res.json(arr);

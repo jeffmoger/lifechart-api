@@ -9,7 +9,7 @@ function parseDateRange(date_range) {
   let arr, start, end
   if (date_range) {
       arr = date_range.split('_');
-      end = Number(moment(arr[1]).startOf('day').format('x'));
+      end = Number(moment(arr[1]).startOf('day').add(1, 'days').format('x'));
       start = Number(moment(arr[0]).startOf('day').format('x'));
   } 
   return [start, end];

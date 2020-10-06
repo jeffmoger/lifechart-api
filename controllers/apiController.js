@@ -331,7 +331,13 @@ exports.move_data_from_google = function(req, res, next) {
 Get data from Database___________________________________________________*/
 
 exports.get_range_data = function(req, res, next) {
-  const userID = req.payload.id;
+  let UserID;
+  if (req.payload.id) {
+    userID = req.payload.id
+  } else {
+    userID = req.headers.id
+  }
+
   const { date_range } = req.params; 
   const days = 60;
   const fields = 'startTimeMillis endTimeMillis value' 
@@ -488,7 +494,12 @@ exports.create_item = async function(req, res, next) {
 Read user items data ____________________________________________________*/
 
 exports.read_items = async function(req, res, next) {
-  const userID = req.payload.id;
+  let userID
+  if (req.payload.id) {
+    userID = req.payload.id
+  } else {
+    userID = req.headers.id
+  }
   const { category, date_range } = req.params; 
   const [start,end] = parseDateRange(date_range);
   const days = countDays(start, end);
@@ -501,4 +512,12 @@ exports.read_items = async function(req, res, next) {
   } catch(err) {
     res.json(err);
   }
+}
+
+exports.demo = async function(req, res, next) {
+  const user = {
+    email: process.env.DEMO_EMAIL,
+    password: process.env.DEMO_PASSWORD
+  }
+  res.json(user)
 }

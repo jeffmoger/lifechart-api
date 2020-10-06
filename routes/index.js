@@ -3,6 +3,12 @@ const router = require('express').Router();
 const api_controller = require('../controllers/apiController'),
       auth = require('../auth/auth')
 
+/* Demo
+____________________________________*/
+
+router.get('/demo/id', auth.optional, api_controller.demo);
+
+
 /* Users
 ____________________________________*/
 

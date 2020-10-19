@@ -43,11 +43,17 @@ ____________________________________*/
 router.get('/get_google_code', auth.required, api_controller.get_google_code);
 router.get('/get_google_auth', auth.required, api_controller.get_google_auth);
 
-router.get('/move_data_from_google', auth.required, api_controller.move_data_from_google);
+router.get([
+  '/move_data_from_google',
+  '/move_data_from_google/:data_type'
+], auth.required, api_controller.move_data_from_google);
+
 router.get([
   '/get_range_data',
-  '/get_range_data/:date_range'
+  '/get_range_data/:date_range',
+  '/get_range_data/:date_range/:data_type'
 ], auth.required, api_controller.get_range_data);
+router.get('/data_sources', auth.required, api_controller.data_sources);
 
 
 //router.get('/api/get_token', auth.required, api_controller.get_token);

@@ -192,7 +192,7 @@ async function getActivity(token, startTime, endTime, dataSourceId, exclude) {
         }
         return dataSetArray
     } catch (err) {
-        console.log('getActivity Catch: ' + err);
+        console.log('getActivity Catch: ' + err + ' - ' + dataSourceId);
         return err
     } 
 }
@@ -263,14 +263,14 @@ const lookupTimestamp = async (start, end, userID, dataTypeName) => {
 
 
 
-async function moveDataFromGoogleToMongoDB(days, userID, token, dataTypeArray) {
+async function moveDataFromGoogleToMongoDB(days, userID, token, dataTypeObj) {
     let [ start, end ] = setDateRange(days);
     const countArray = [];
-    const promises = dataTypeArray.map(async (dataName, idx) => {
+    const promises = dataTypeObj.map(async (dataName, idx) => {
         //console.log(`Received ${dataName[0]} ${idx+1}:`),
-        await lookupTimestamp(start, end, userID, dataName[1])
-            .then(returnObject => getActivity(token, start, end, dataName[2], returnObject)
-            .then(returnArray => saveFitData(userID, returnArray, dataName[1], countArray)
+        await lookupTimestamp(start, end, userID, dataName.dataTypeName)
+            .then(returnObject => getActivity(token, start, end, dataName.dataSourceId, returnObject)
+            .then(returnArray => saveFitData(userID, returnArray, dataName.dataTypeName, countArray)
             ))
             .catch(err => console.log(err))
     });
@@ -303,6 +303,17 @@ async function copyGoogleToDB(days, userID, token, dataTypeArray) {
     return 'done'
 }
 
+function getDataSource(data_type, checkDataSourceId) {
+    if (data_type) {
+      const data_type_arr = data_type.split(',');
+      return data_type_arr.map((dataTypeName) => {
+        let [match] = checkDataSourceId.filter((item) => item.dataTypeName === dataTypeName);
+        return match;
+      })
+    } else {
+      return []
+    }
+  }
 
 
 
@@ -320,5 +331,6 @@ module.exports = {
     getUserTokenFromProfile,
     saveTokenToProfile,
     callAuthToRefreshToken,
-    checkTokenHasExpired
+    checkTokenHasExpired,
+    getDataSource
 }

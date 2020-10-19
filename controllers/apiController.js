@@ -20,7 +20,8 @@ const {
   getUserTokenFromProfile,
   saveTokenToProfile,
   callAuthToRefreshToken,
-  checkTokenHasExpired
+  checkTokenHasExpired,
+  getDataSource
 } = require('./functions');
 
 const {
@@ -33,17 +34,43 @@ const {
 //const { json } = require('body-parser');
 
 
-
-const dataTypeArray = [
-  ['Calories Burned','com.google.calories.expended', 'derived:com.google.calories.expended:com.google.android.gms:merge_calories_expended', 'exercise'],
-  ['Active Minutes','com.google.active_minutes', 'derived:com.google.active_minutes:com.google.android.gms:merge_active_minutes', 'exercise'],
-  ['Nutrition','com.google.nutrition.summary', 'raw:com.google.nutrition:fitapp.fittofit:FitToFit - food', 'nutrition'],
-  ['Nutrition','com.google.nutrition.summary','raw:com.google.nutrition:com.myfitnesspal.android:', 'nutrition'],
-  ['Sleep','com.google.activity.summary', 'raw:com.google.activity.segment:com.urbandroid.sleep:','sleep'],
-  ['Heart Health','com.google.heart_minutes.summary', 'derived:com.google.heart_minutes:com.google.android.gms:merge_heart_minutes', 'exercise'],
-  ['Step Count','com.google.step_count.delta', 'derived:com.google.step_count.delta:com.google.android.gms:estimated_steps', 'exercise']
-];
-
+const checkDataSourceId = [
+  {
+    name: 'nutrition_summary',
+    label: 'Nutrition',
+    group: 'nutrition',
+    dataSourceId: 'derived:com.google.nutrition:com.google.android.gms:merged',
+    dataTypeName: 'com.google.nutrition.summary',
+  },
+  {
+    name: 'calories_expended',
+    label: 'Calories Burned',
+    group: 'exercise',
+    dataSourceId: 'derived:com.google.calories.expended:com.google.android.gms:merge_calories_expended',
+    dataTypeName: 'com.google.calories.expended',
+  },
+  {
+    name: 'active_minutes',
+    label: 'Active Minutes',
+    group: 'exercise',
+    dataSourceId: 'derived:com.google.active_minutes:com.google.android.gms:merge_active_minutes',
+    dataTypeName: 'com.google.active_minutes',
+  },
+  {
+    name: 'heart_minutes_summary',
+    label: 'Heart Health',
+    group: 'exercise',
+    dataSourceId: 'derived:com.google.heart_minutes:com.google.android.gms:merge_heart_minutes',
+    dataTypeName: 'com.google.heart_minutes.summary',
+  },
+  {
+    name: 'step_count_delta',
+    label: 'Step Count',
+    group: 'exercise',
+    dataSourceId: 'derived:com.google.step_count.delta:com.google.android.gms:estimated_steps',
+    dataTypeName: 'com.google.step_count.delta',
+  }
+]
 
 /*_________________________________________________________________________
 Login Route______________________________________________________________*/
@@ -142,6 +169,7 @@ Read User profile data __________________________________________________*/
 
 exports.edit_user = async function(req, res, next) {
   const userID = req.payload.id;
+  console.log(userID)
   const { body } = req;
   await Users.findByIdAndUpdate(userID, body, {new: true})
   .exec((err, result) => {
@@ -243,7 +271,7 @@ exports.get_google_auth = (req, res, next) => {
 Get list of DataSourceIds from Google_____________________________________*/
 
 exports.data_sources = function(req, res, next) {
-  const userID = req.user.id
+  const userID = req.payload.id
   getUserTokenFromProfile(userID)
   .then(async (token) => {
     return await callAuthToRefreshToken(token)
@@ -254,9 +282,20 @@ exports.data_sources = function(req, res, next) {
     return data
   })
   .then((response) => {
-    let myList = [...new Set(response.dataSource.map(x => x.dataType.name))]
-    console.log(myList)
-    return response.dataSource
+    const { dataSource } = response;
+    let newArray = [];
+    checkDataSourceId.forEach((obj) => {
+      let [filteredData] = dataSource.filter((element) => element.dataStreamId === obj.dataSourceId);
+      
+      if (filteredData) {
+        obj.dataDetails = filteredData;
+      } else {
+        obj.dataDetails = null;
+      }
+      
+      newArray.push(obj);
+    })
+    return newArray
   })
   .then((response) => res.json(response) )
   .catch(err => console.log(err))
@@ -267,9 +306,11 @@ exports.data_sources = function(req, res, next) {
 Google Authentication redirect page______________________________________*/
 
 exports.move_data_from_google = function(req, res, next) {
-
   const callbackUrl = req.path
-  const userID = req.headers.id
+  const userID = req.payload.id
+
+  const { data_type } = req.params; 
+  const dataSourceIdArray = getDataSource(data_type, checkDataSourceId);
   let days = 30
 
 
@@ -313,7 +354,7 @@ exports.move_data_from_google = function(req, res, next) {
           saveTokenToProfile(userID, credentials);
           return credentials
         })
-        .then(tokens => moveDataFromGoogleToMongoDB(days, userID, tokens, dataTypeArray))
+        .then(tokens => moveDataFromGoogleToMongoDB(days, userID, tokens, dataSourceIdArray))
         .then(response => {
           console.log('Successfuly ran moveDataFromGoogleToMongoDB')
           res.json(response)})
@@ -331,14 +372,19 @@ exports.move_data_from_google = function(req, res, next) {
 Get data from Database___________________________________________________*/
 
 exports.get_range_data = function(req, res, next) {
-  let UserID;
+  let userID;
   if (req.payload.id) {
     userID = req.payload.id
   } else {
     userID = req.headers.id
   }
 
-  const { date_range } = req.params; 
+  const { date_range, data_type } = req.params; 
+  
+
+  const dataSourceIdArray = getDataSource(data_type, checkDataSourceId);
+  //console.log(dataSourceIdArray);
+  // TODO: get params for dataTypes
   const days = 60;
   const fields = 'startTimeMillis endTimeMillis value' 
 
@@ -395,48 +441,9 @@ exports.get_range_data = function(req, res, next) {
     return (newContainer)
   }
 
-  async function cleanChartArray(obj) {
-    const chartObj = {}
-    let root = Object.keys(obj)
-    root.forEach((group_key) => {
-      let groupArrays = obj[group_key].arrays
-      let root_1 = Object.entries(groupArrays)
-      root_1.forEach(([label, value]) => {
-        chartObj[label] = {
-          values: [],
-          dates: []
-        };
-        for (let i=0; i < value.length; i++) {
-          if (!value[i].key) {
-            chartObj[label].values.push(value[i].value)
-            chartObj[label].dates.push(value[i].date)
-          } else {
-            let key = value[i].key
-            if (!chartObj[label][key]) chartObj[label][key] = {}
-            if (!chartObj[label][key].values) chartObj[label][key].values = []
-            if (!chartObj[label][key].dates) chartObj[label][key].dates = []
-            chartObj[label][key].values.push(value[i].value)
-            chartObj[label][key].dates.push(value[i].date)
-          }
-        } 
-      })
-    })
-    obj.newArrays = chartObj
-    return obj
-  }
-
-  function returnDateArray(dateRangeArray) {
-    const [ start, end, dateRange ] = dateRangeArray
-    console.log(dateRange)
-    for(var arr=[],dt=new Date(start); dt<=end; dt.setDate(dt.getDate()+1)){
-      arr.push(parseInt(moment(dt).format('x')));
-    }
-    return arr;
-  };
-
-  const fetchData = async (userID, dateRangeArray, dataTypeArray) => {
+  const fetchData = async (userID, dateRangeArray, dataTypeObj) => {
     const [ start, end ] = dateRangeArray
-    const [ title, dataTypeName, x, group ] = dataTypeArray
+    const { label: title, dataTypeName, group } = dataTypeObj
     const data = {};
     data.title = title;
     data.group = group;
@@ -454,7 +461,7 @@ exports.get_range_data = function(req, res, next) {
   async function main(){
     try {
       let container = [];
-      const promises = dataTypeArray.map(async (dataName, idx) => {
+      const promises = dataSourceIdArray.map(async (dataName, idx) => {
         await fetchData(userID, parseDateRange(date_range), dataName)
           .then(response => container.push(response))
       });
@@ -465,7 +472,6 @@ exports.get_range_data = function(req, res, next) {
 
   main()
     .then(async response => buildChartArrays(response))
-    //.then(response => cleanChartArray(response))
     .then(response => {res.json(response)})
     .catch((err) => {
       console.log(err);

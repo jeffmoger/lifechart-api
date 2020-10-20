@@ -1,5 +1,6 @@
 const moment = require('moment');
 const passport = require('passport');
+const { check, validationResult } = require('express-validator');
 
 require('../auth/passport')
 
@@ -76,36 +77,43 @@ const checkDataSourceId = [
 Login Route______________________________________________________________*/
 
 exports.login_route = function(req, res, next) {
-  
   const { body: { user } } = req;
 
-  if(!user.email) {
+  if (!user.email) {
     return res.status(422).json({
-      errors: {
-        email: 'is required',
-      },
-    });
+      errors: [
+      {
+        msg: 'Email is required',
+      }
+    ]});
+  }
+  if (!user.password) {
+    return res.status(422).json({
+      errors: [
+      {
+        msg: 'Password is required',
+      }
+    ]});
   }
 
-  if(!user.password) {
-    return res.status(422).json({
-      errors: {
-        password: 'is required',
-      },
-    });
-  }
   return passport.authenticate('local', { session: false }, (err, passportUser, info) => {
     if(err) {
       return res.status(400).json({
-        message: 'We are experiencing an error of unknown origin',
-        user   : passportUser
-      });
+        errors: [
+        {
+          msg: 'We are experiencing an error of unknown origin',
+          user: passportUser
+        }
+      ]});
     }
 
     if (!passportUser) {
       return res.status(404).json({
-        message: 'User does not exist.'
-      })
+        errors: [
+        {
+          msg: 'User does not exist.',
+        }
+      ]});
     }
 
     if(passportUser) {
@@ -122,32 +130,46 @@ exports.login_route = function(req, res, next) {
 
 
 
+
 /*_________________________________________________________________________
 Create New User Route____________________________________________________*/
 
-exports.create_user = function(req, res, next) {
-  const { body: {user } } = req;      
-
-  if(!user.email) {
-    return res.status(422).json({
-      errors: {
-        email: 'is required',
-      },
-    });
+exports.create_user = async function(req, res, next) {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    console.log(errors.array());
+    return res.status(400).json({ errors: errors.array() });
   }
-  if(!user.password) {
+  const { body: { user } } = req;
+  const checkUser = await Users.findOne({ email: user.email })
+  if (checkUser) {
     return res.status(422).json({
-      errors: {
-        password: 'is required',
-      },
-    });
-  }
-  console.log(user)
+      errors: [
+      {
+        location: "body",
+        msg: `${user.email} is already registered in our system.`,
+        param: 'email'
+      }
+    ]});
+  };
   const finalUser = new Users(user);
   finalUser.setPassword(user.password);
   return finalUser.save()
   .then((finalUser) => res.json({ user: finalUser.toAuthJSON() }));
 };
+
+exports.create_user_validation = [
+  check('user.email', 'Username Must Be an Email Address')
+    .isEmail()
+    .trim()
+    .escape()
+    .normalizeEmail(),
+  check('user.password')
+    .isLength({min:6}).withMessage('Password Must Be at Least 6 characters')
+    .matches('[0-9]').withMessage('Password Must Contain a Number')
+    .trim()
+    .escape()
+]
 
 /*_________________________________________________________________________
 Read User profile data __________________________________________________*/
@@ -169,7 +191,6 @@ Read User profile data __________________________________________________*/
 
 exports.edit_user = async function(req, res, next) {
   const userID = req.payload.id;
-  console.log(userID)
   const { body } = req;
   await Users.findByIdAndUpdate(userID, body, {new: true})
   .exec((err, result) => {

@@ -291,35 +291,34 @@ exports.get_google_auth = (req, res, next) => {
  /*_________________________________________________________________________
 Get list of DataSourceIds from Google_____________________________________*/
 
-exports.data_sources = function(req, res, next) {
+exports.data_sources = async function(req, res, next) {
   const userID = req.payload.id
-  getUserTokenFromProfile(userID)
-  .then(async (token) => {
-    return await callAuthToRefreshToken(token)
-  })
-  .then(async (token) => {
-    const { credentials } = token
-    const {data} = await getDataSourcesFromGoogle(credentials.access_token)
-    return data
-  })
-  .then((response) => {
-    const { dataSource } = response;
-    let newArray = [];
-    checkDataSourceId.forEach((obj) => {
-      let [filteredData] = dataSource.filter((element) => element.dataStreamId === obj.dataSourceId);
-      
-      if (filteredData) {
-        obj.dataDetails = filteredData;
-      } else {
-        obj.dataDetails = null;
-      }
-      
-      newArray.push(obj);
+  const token = await getUserTokenFromProfile(userID)
+  //If no token, return empty array, but it leaves unsolved the problem of why the user has no token/refreshtoken stored. This is an edge case that shouldn't happen ordinarily, but the right thing to do is to turn off googleFit setting in profile, which would force the user to reconnect.
+  if (!token) return res.status(404).json([]);
+  if (token) {
+    await callAuthToRefreshToken(token)
+    .then(async (refreshToken) => {
+      const { credentials } = refreshToken
+      const {data} = await getDataSourcesFromGoogle(credentials.access_token)
+      return data
     })
-    return newArray
-  })
-  .then((response) => res.json(response) )
-  .catch(err => console.log(err))
+    .then((response) => {
+      const { dataSource } = response;
+      let newArray = [];
+      checkDataSourceId.forEach((obj) => {
+        let [filteredData] = dataSource.filter((element) => element.dataStreamId === obj.dataSourceId);
+        if (filteredData) {
+          obj.dataDetails = filteredData;
+        } else {
+          obj.dataDetails = null;
+        }
+        newArray.push(obj);
+      })
+      res.json(newArray)
+    })
+    .catch(err => console.log(err))
+  }
 }
 
 

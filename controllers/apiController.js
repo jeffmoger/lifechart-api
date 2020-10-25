@@ -176,7 +176,7 @@ Read User profile data __________________________________________________*/
 
 exports.read_user = async function(req, res, next) {
   const userID = req.payload.id;
-  await Users.findById(userID, 'first_name family_name date_of_birth email weight googleFit daily_calorie_goal weight_goal')
+  await Users.findById(userID, 'first_name family_name date_of_birth email weight googleFit daily_calorie_goal weight_goal dataSourceIds')
   .exec((err, profile) => {
     if (err) {
       res.status(400).send(err)
@@ -192,14 +192,12 @@ Read User profile data __________________________________________________*/
 exports.edit_user = async function(req, res, next) {
   const userID = req.payload.id;
   const { body } = req;
-  await Users.findByIdAndUpdate(userID, body, {new: true})
+  await Users.findByIdAndUpdate(userID, body)
   .exec((err, result) => {
     if (err) {
       res.status(400).send(err)
-    } else {
-      let { salt, hash, googleFit, _id, createdAt, __v, ...rest } = result._doc
-      res.json(rest);
     }
+    res.status(204).send();
   })
 }
 
@@ -295,7 +293,7 @@ exports.data_sources = async function(req, res, next) {
   const userID = req.payload.id
   const token = await getUserTokenFromProfile(userID)
   //If no token, return empty array, but it leaves unsolved the problem of why the user has no token/refreshtoken stored. This is an edge case that shouldn't happen ordinarily, but the right thing to do is to turn off googleFit setting in profile, which would force the user to reconnect.
-  if (!token) return res.status(404).json([]);
+  if (!token) return res.status(404).json({error: 'no refresh token found'});
   if (token) {
     await callAuthToRefreshToken(token)
     .then(async (refreshToken) => {

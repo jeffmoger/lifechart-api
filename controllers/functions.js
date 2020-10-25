@@ -77,6 +77,8 @@ async function returnAuthUrl(callbackUrl, userID) {
         process.env.G_REDIRECT_URIS
     );
     const scopes = [ 
+        "https://www.googleapis.com/auth/userinfo.email",
+        "https://www.googleapis.com/auth/userinfo.profile",
         "https://www.googleapis.com/auth/fitness.activity.read",
         "https://www.googleapis.com/auth/fitness.body.read",
         "https://www.googleapis.com/auth/fitness.nutrition.read"

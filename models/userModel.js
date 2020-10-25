@@ -24,6 +24,7 @@ const UsersSchema = new Schema(
   daily_calorie_goal: {type: Number},
   weight_goal: {type: Number},
   googleFit: {type: Boolean, default: false},
+  dataSourceIds: {type: Array},
   hash: {type: String},
   salt: {type: String},
   createdAt: Number,
@@ -61,14 +62,6 @@ UsersSchema
   return (this.date_of_birth ? moment(this.date_of_birth).format('LL') : '');
 });
 
-// Virtual for URL
-UsersSchema
-.virtual('url')
-.get(function () {
-  return '/view/users/' + this._id;
-});
-
-
 UsersSchema.methods.setPassword = function(password) {
   this.salt = crypto.randomBytes(16).toString('hex');
   this.hash = crypto.pbkdf2Sync(password, this.salt, 10000, 512, 'sha512').toString('hex');
@@ -96,7 +89,8 @@ UsersSchema.methods.toAuthJSON = function() {
     email: this.email,
     token: this.generateJWT(),
     exp: generateTokenExpiryDate(days_token_valid),
-    googleFit: this.googleFit
+    googleFit: this.googleFit,
+    dataSourceIds: this.dataSourceIds
   };
 };
 

@@ -1,7 +1,6 @@
 const router = require('express').Router();
-
-const api_controller = require('../controllers/apiController'),
-      auth = require('../auth/auth')
+const api_controller = require('../controllers/apiController');
+const auth = require('../auth/auth');
 
 /* Demo
 ____________________________________*/
@@ -40,8 +39,8 @@ router.get([
 ____________________________________*/
 
 
-router.get('/get_google_code', auth.required, api_controller.get_google_code);
-router.get('/get_google_auth', auth.required, api_controller.get_google_auth);
+router.get('/get_google_code', auth.optional, api_controller.get_google_code);
+router.get('/get_google_auth', auth.optional, api_controller.get_google_auth);
 
 router.get([
   '/move_data_from_google',
@@ -54,6 +53,15 @@ router.get([
   '/get_range_data/:date_range/:data_type'
 ], auth.required, api_controller.get_range_data);
 router.get('/data_sources', auth.required, api_controller.data_sources);
+
+/* Google Login
+____________________________________*/
+
+router.get('/google_login_auth', auth.optional, api_controller.google_login_auth);
+//router.get('/google_login/return', auth.optional, api_controller.google_login);
+
+router.get('/google_login_url', api_controller.google_login_url);
+
 
 
 //router.get('/api/get_token', auth.required, api_controller.get_token);

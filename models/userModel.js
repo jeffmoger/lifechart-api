@@ -23,8 +23,11 @@ const UsersSchema = new Schema(
   weight: {type: Number},
   daily_calorie_goal: {type: Number},
   weight_goal: {type: Number},
+  googleId: {type: Number},
   googleFit: {type: Boolean, default: false},
   dataSourceIds: {type: Array},
+  picture: {type: String},
+  email_verified: {type: Boolean},
   hash: {type: String},
   salt: {type: String},
   createdAt: Number,
@@ -40,10 +43,6 @@ const UsersSchema = new Schema(
 UsersSchema
 .virtual('name')
 .get(function () {
-
-// To avoid errors in cases where user does not have either a family name or first name
-// We want to make sure we handle the exception by returning an empty string for that case
-
   var fullname = '';
   if (this.first_name && this.family_name) {
     fullname = this.family_name + ', ' + this.first_name
@@ -73,7 +72,6 @@ UsersSchema.methods.validatePassword = function(password) {
 };
 
 UsersSchema.methods.generateJWT = function() {
-
   return jwt.sign({
     email: this.email,
     first_name: this.first_name,
@@ -83,7 +81,6 @@ UsersSchema.methods.generateJWT = function() {
 }
 
 UsersSchema.methods.toAuthJSON = function() {
-  
   return {
     id: this._id,
     email: this.email,

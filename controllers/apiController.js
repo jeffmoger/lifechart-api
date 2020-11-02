@@ -1,5 +1,5 @@
-const moment = require('moment');
 const passport = require('passport');
+const jwt = require('jsonwebtoken');
 const { check, validationResult } = require('express-validator');
 
 require('../auth/passport')
@@ -8,6 +8,7 @@ const Fit = require('../models/fitModel');
 const Users = require('../models/userModel');
 const Items = require('../models/itemModel');
 const Symptom = require('../models/symptomModel');
+const Tokens = require('../models/googleToken');
 
 const { 
   getUserProfile,
@@ -31,6 +32,9 @@ const {
   getData,
   groupData
 } = require('./item_functions');
+const { json } = require('body-parser');
+
+//const { functions } = require('lodash');
 
 //const { json } = require('body-parser');
 
@@ -292,7 +296,7 @@ Get list of DataSourceIds from Google_____________________________________*/
 exports.data_sources = async function(req, res, next) {
   const userID = req.payload.id
   const token = await getUserTokenFromProfile(userID)
-  //If no token, return empty array, but it leaves unsolved the problem of why the user has no token/refreshtoken stored. This is an edge case that shouldn't happen ordinarily, but the right thing to do is to turn off googleFit setting in profile, which would force the user to reconnect.
+  //left unsolved the problem of why the user has no token/refreshtoken stored. This is an edge case that shouldn't happen ordinarily, but the right thing to do is to turn off googleFit setting in profile, which would force the user to reconnect.
   if (!token) return res.status(404).json({error: 'no refresh token found'});
   if (token) {
     await callAuthToRefreshToken(token)
@@ -545,3 +549,120 @@ exports.demo = async function(req, res, next) {
   }
   res.json(user)
 }
+
+
+/*_________________________________________________________________________
+Google Auth Login    ____________________________________________________*/
+
+exports.google_login_url = async (req, res) => {
+  const redirect_url = 'https://localhost/auth/google/redirect';
+  const callbackUrl = req.path;
+  const userID = 'none';
+  await returnAuthUrl(callbackUrl, userID, redirect_url)
+  .then((result) => res.json(result))
+  .catch((err => res.json(err)))
+}
+
+exports.google_login_auth = async function(req, res, next) {
+  const { code } = req.headers; 
+  const redirect_url = 'https://localhost/auth/google/redirect';
+  console.log(code)
+
+  async function callNewOauth() {
+    try {
+      console.log('call oath2client')
+      const oauth2Client = newOauth2Client(redirect_url);
+      const { tokens } = await oauth2Client.getToken(code);
+      oauth2Client.setCredentials(tokens);
+      console.log(tokens)
+      return tokens;
+    } catch(err) {
+      console.log(err)
+     return err
+    }
+  };
+
+  async function checkUsers(googleId, update) {
+    try {
+        const filter = { googleId: googleId };
+        const user = await Users.find(filter, update, { new: true })
+        return user
+    } catch (err) {
+        console.log(err);
+    }
+  };
+
+  async function updateTokens(userID, access_token, expiry_date) {
+    try {
+        const filter = { userID: userID };
+        const update = {
+          access_token,
+          expiry_date
+        }
+        const response = await Tokens.findOneAndUpdate(filter, update, { new: true });
+        return response;
+    } catch (err) {
+        console.log(err);
+    }
+  };
+  function generateTokenExpiryDate(days) {
+    const today = new Date();
+    const expirationDate = new Date(today);
+    expirationDate.setDate(today.getDate() + days);
+    return parseInt(expirationDate.getTime() / 1000, 10)
+  }
+
+  const generateJWT = (first_name, id, exp) => {
+    return jwt.sign({
+      first_name,
+      id,
+      exp,
+    }, process.env.JWT_SECRET);
+  }
+
+  const checkTokenAUD = (aud) => {
+    if (aud === process.env.G_CLIENT_ID) return true
+  }
+
+  //---------------------------
+
+  const tokens = await callNewOauth();
+  const { email, email_verified, given_name: first_name, family_name, locale, picture, sub: googleId, aud } = jwt.decode(tokens.id_token);
+  const currentUser = await checkUsers(googleId);
+
+  if (currentUser.length === 0) {
+    console.log('Not currently registered');
+    const tempUser = new Users({
+      email,
+      first_name,
+      family_name,
+      locale,
+      picture,
+      email_verified,
+      googleFit: true,
+      googleId,
+      dataSourceIds: []
+    })
+    tempUser.save()
+      .then((user) => {
+        tokens.userID = user.id;
+        saveTokens(tokens);
+        if (checkTokenAUD(aud)) {
+          const myExp = generateTokenExpiryDate(14)
+          const myToken = generateJWT(first_name, user.id, myExp)
+          return res.json({ user: { token: myToken, exp: myExp, googleFit: user.googleFit, dataSourceIds: user.dataSourceIds }});
+        }
+      })
+  }
+  if (currentUser.length === 1) {
+    const {id, first_name, googleFit, dataSourceIds} = currentUser[0];
+    updateTokens(id, tokens.access_token, tokens.expiry_date)
+    
+    if (checkTokenAUD(aud)) {
+      const myExp = generateTokenExpiryDate(14)
+      const myToken = generateJWT(first_name, id, myExp)
+      return res.json({ user: { token: myToken, exp: myExp, googleFit, dataSourceIds }});
+    }
+  }
+}
+

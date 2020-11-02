@@ -33,23 +33,13 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 
 app.get('/settings/return_from_google', (req, res) => {
-  console.log(__dirname);
-  res.sendFile(path.join(__dirname, 'build', 'index.html'))
-});
-
-app.get('/', (req, res) => {
-  console.log('Serving  React App');
+  console.log('dirname:' + __dirname);
   res.sendFile(path.join(__dirname, 'build', 'index.html'))
 });
 
 app.get('/demo', (req, res) => {
   console.log('Serving Demo');
   res.sendFile(path.join(__dirname, 'build', 'index.html'))
-});
-
-app.get('/test', (req, res) => {
-  console.log('Serving  Test');
-  res.send('test okay')
 });
 
 

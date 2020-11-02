@@ -48,11 +48,11 @@ function checkTokenHasExpired(token) {
 }
 
 
-function newOauth2Client() {
+function newOauth2Client(redirect_url = process.env.G_REDIRECT_URIS) {
     const oauth2Client = new google.auth.OAuth2(
         process.env.G_CLIENT_ID,
         process.env.G_CLIENT_SECRET,
-        process.env.G_REDIRECT_URIS
+        redirect_url
     );
     return oauth2Client;
 }
@@ -70,18 +70,19 @@ async function callGoogle(url) {
     return response.status;
   };
   
-async function returnAuthUrl(callbackUrl, userID) {
+async function returnAuthUrl(callbackUrl, userID, redirect_url = process.env.G_REDIRECT_URIS) {
     const oauth2Client = new google.auth.OAuth2(
         process.env.G_CLIENT_ID,
         process.env.G_CLIENT_SECRET,
-        process.env.G_REDIRECT_URIS
+        redirect_url
     );
     const scopes = [ 
         "https://www.googleapis.com/auth/userinfo.email",
         "https://www.googleapis.com/auth/userinfo.profile",
         "https://www.googleapis.com/auth/fitness.activity.read",
         "https://www.googleapis.com/auth/fitness.body.read",
-        "https://www.googleapis.com/auth/fitness.nutrition.read"
+        "https://www.googleapis.com/auth/fitness.nutrition.read",
+        "openid",
     ];
     const authUrl = oauth2Client.generateAuthUrl({
         access_type: "offline",

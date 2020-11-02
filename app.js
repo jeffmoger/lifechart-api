@@ -32,25 +32,13 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(cors());
 
-app.get('/settings/return_from_google', (req, res) => {
-  console.log('dirname:' + __dirname);
-  res.sendFile(path.join(__dirname, 'build', 'index.html'))
-});
-
-app.get('/auth/google/redirect', (req, res) => {
-  console.log('dirname:' + __dirname);
-  res.sendFile(path.join(__dirname, 'build', 'index.html'))
-});
-
-
-app.get('/demo', (req, res) => {
-  console.log('Serving Demo');
-  res.sendFile(path.join(__dirname, 'build', 'index.html'))
-});
-
-
 //Use Routes
 app.use('/api', apiRouter);
+
+app.get('*', (req, res) => {
+  console.log('dirname:' + __dirname);
+  res.sendFile(path.join(__dirname, 'build', 'index.html'))
+});
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

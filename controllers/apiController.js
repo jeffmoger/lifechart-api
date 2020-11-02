@@ -555,23 +555,21 @@ exports.demo = async function(req, res, next) {
 Google Auth Login    ____________________________________________________*/
 
 exports.google_login_url = async (req, res) => {
-  const redirect_url = 'https://localhost/auth/google/redirect';
   const callbackUrl = req.path;
   const userID = 'none';
-  await returnAuthUrl(callbackUrl, userID, redirect_url)
+  await returnAuthUrl(callbackUrl, userID, process.env.G_AUTH_REDIRECT)
   .then((result) => res.json(result))
   .catch((err => res.json(err)))
 }
 
 exports.google_login_auth = async function(req, res, next) {
   const { code } = req.headers; 
-  const redirect_url = 'https://localhost/auth/google/redirect';
   console.log(code)
 
   async function callNewOauth() {
     try {
       console.log('call oath2client')
-      const oauth2Client = newOauth2Client(redirect_url);
+      const oauth2Client = newOauth2Client(process.env.G_AUTH_REDIRECT);
       const { tokens } = await oauth2Client.getToken(code);
       oauth2Client.setCredentials(tokens);
       console.log(tokens)

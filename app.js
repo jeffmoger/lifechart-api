@@ -36,7 +36,7 @@ app.use(cors());
 app.use('/api', apiRouter);
 
 app.get('*', (req, res) => {
-  console.log('dirname:' + __dirname);
+  //console.log('dirname:' + __dirname);
   res.sendFile(path.join(__dirname, 'build', 'index.html'))
 });
 

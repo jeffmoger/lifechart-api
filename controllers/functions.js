@@ -94,7 +94,6 @@ async function returnAuthUrl(callbackUrl, userID, redirect_url = process.env.G_R
     });
 
     let urlStatus = await callGoogle(authUrl);
-    console.log(urlStatus)
     if (urlStatus === 200) {
         return(authUrl)
     }
@@ -162,7 +161,14 @@ async function getActivity(token, startTime, endTime, dataSourceId, exclude) {
                 aggregateBy: [{
                     dataSourceId: dataSourceId
                 }],
-                bucketByTime: { "durationMillis": 86400000 },
+                //bucketByTime: { "durationMillis": 86400000 },
+                bucketByTime: {
+                    period: {
+                        type: 'day',
+                        value: 1,
+                        timeZoneId: 'America/Vancouver'
+                    }
+                  },
                 startTimeMillis: startTime,
                 endTimeMillis: endTime
                 }

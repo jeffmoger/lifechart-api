@@ -11,7 +11,7 @@ function parseDateRange(date_range) {
       arr = date_range.split('_');
       end = Number(moment(arr[1]).startOf('day').add(1, 'days').format('x'));
       start = Number(moment(arr[0]).startOf('day').format('x'));
-  } 
+  }
   return [start, end];
 }
 
@@ -19,7 +19,7 @@ function countDays(start, end) {
   //Counts the distance between start and end, and returns integer
   let s = Number(moment(start).startOf('day').format('x'));
   let e = Number(moment(end).startOf('day').format('x'));
-  return Number((e-s)/1000/60/60/24);
+  return Math.round((e-s)/1000/60/60/24);
 }
 
 function bucketByDay(start, days, data) {

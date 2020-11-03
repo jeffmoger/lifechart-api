@@ -494,7 +494,8 @@ exports.get_range_data = function(req, res, next) {
 
   main()
     .then(async response => buildChartArrays(response))
-    .then(response => {res.json(response)})
+    .then(response => {
+      res.json(response)})
     .catch((err) => {
       console.log(err);
       res.json('error')

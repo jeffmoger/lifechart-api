@@ -105,7 +105,9 @@ function dateInMilli(date) {
 }
 
 function addDay(num) {
-  return Number(num) + 1000*60*60*24
+  let currentDay = moment(num);
+  currentDay.add(1, 'days');
+  return Number(currentDay.startOf('day').format('x'));
 }
 
 function buildObject(start, end, data) {

@@ -15,6 +15,7 @@ router.post('/users/login', auth.optional, api_controller.login_route);
 router.post('/users/create', auth.optional, api_controller.create_user_validation, api_controller.create_user);
 router.get('/users/read', auth.required, api_controller.read_user);
 router.put('/users/edit', auth.required, api_controller.edit_user);
+router.get('/users/delete', auth.required, api_controller.delete_user);
 
 /* Symptoms
 ____________________________________*/

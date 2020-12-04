@@ -32,7 +32,8 @@ const {
   getData,
   groupData
 } = require('./item_functions');
-const { json } = require('body-parser');
+
+//const { json } = require('body-parser');
 
 //const { functions } = require('lodash');
 
@@ -187,6 +188,27 @@ exports.read_user = async function(req, res, next) {
     } else {
       res.json(profile)
     }
+  })
+}
+
+/*_________________________________________________________________________
+Delete User profile and associated data __________________________________________________*/
+
+exports.delete_user = async function(req, res, next) {
+  const userID = req.payload.id;
+  console.log(`Lookup Items for ${userID} and removing all`)
+
+
+  await Symptom.deleteMany({userID: userID})
+  await Items.deleteMany({userID: userID})
+  await Fit.deleteMany({userID: userID})
+  //await Tokens.deleteMany({userID: userID})
+  //await Users.findByIdAndDelete(userID)
+  .exec((err, result) => {
+    if (err) {
+      res.status(400).send(err)
+    }
+    res.json('done');
   })
 }
 

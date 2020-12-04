@@ -29,7 +29,6 @@ router.delete('/symptoms/delete', auth.optional, api_controller.delete_symptom);
 ____________________________________*/
 
 router.post('/items/create', auth.required, api_controller.create_item)
-//router.get('/items/read', auth.required, api_controller.read_items)
 router.get('/items/read', auth.required, api_controller.read_items)
 router.get([
   '/items/:category',
@@ -62,30 +61,6 @@ router.get('/google_login_auth', auth.optional, api_controller.google_login_auth
 //router.get('/google_login/return', auth.optional, api_controller.google_login);
 
 router.get('/google_login_url', api_controller.google_login_url);
-
-
-
-//router.get('/api/get_token', auth.required, api_controller.get_token);
-//router.get('/api/get_data', auth.required, api_controller.return_data);
-
-
-
-// GET home page.
-//router.get('/', function(res, req, next){
-//    res.json('api home')
-//});
-
-
-
-// GET stats page.
-//router.get('/stats', function(res, req, next){
-//    res.json('home_controller.view_stats')
-//});
-
-//router.get('/data', function(res, req, next){
-//    res.json('stats_controller.data_get')
-//});
-
 
 
 

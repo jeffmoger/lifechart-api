@@ -12,7 +12,6 @@ const Tokens = require('../models/googleToken');
 
 const { 
   getUserProfile,
-  setDateRange,
   newOauth2Client,
   returnAuthUrl,
   updateGoogleFit,
@@ -202,8 +201,8 @@ exports.delete_user = async function(req, res, next) {
   await Symptom.deleteMany({userID: userID})
   await Items.deleteMany({userID: userID})
   await Fit.deleteMany({userID: userID})
-  //await Tokens.deleteMany({userID: userID})
-  //await Users.findByIdAndDelete(userID)
+  await Tokens.deleteMany({userID: userID})
+  await Users.findByIdAndDelete(userID)
   .exec((err, result) => {
     if (err) {
       res.status(400).send(err)
@@ -282,7 +281,7 @@ New route for first time Google Authentication___________________________*/
 exports.get_google_code = function(req, res, next) {
   const userID = req.headers.id;
   const callbackUrl = req.path;
-  
+  console.log('Generating google login url')
   returnAuthUrl(callbackUrl, userID)
   .then(response => res.json(response))
 }
@@ -319,12 +318,13 @@ exports.data_sources = async function(req, res, next) {
   const userID = req.payload.id
   const token = await getUserTokenFromProfile(userID)
   //left unsolved the problem of why the user has no token/refreshtoken stored. This is an edge case that shouldn't happen ordinarily, but the right thing to do is to turn off googleFit setting in profile, which would force the user to reconnect.
-  if (!token) return res.status(404).json({error: 'no refresh token found'});
+  if (!token) return res.status(401).json({error: 'no tokens found'});
+  if (!token.refresh_token) return res.status(401).json({error: 'no refresh token present in collection'});
   if (token) {
     await callAuthToRefreshToken(token)
-    .then(async (refreshToken) => {
-      const { credentials } = refreshToken
-      const {data} = await getDataSourcesFromGoogle(credentials.access_token)
+    .then(async (accessTokens) => {
+      const { token } = accessTokens
+      const {data} = await getDataSourcesFromGoogle(token)
       return data
     })
     .then((response) => {
@@ -383,7 +383,7 @@ exports.move_data_from_google = function(req, res, next) {
               return token
             }
           } else {
-            console.log('Could not find token. Redirecting back through returnAuthUrl')
+            console.log('Could not find refresh token. Redirecting back through returnAuthUrl')
             returnAuthUrl(callbackUrl, userID)
               .then(response => res.redirect(response))
           }
@@ -580,6 +580,7 @@ Google Auth Login    ____________________________________________________*/
 exports.google_login_url = async (req, res) => {
   const callbackUrl = req.path;
   const userID = 'none';
+  console.log(callbackUrl);
   await returnAuthUrl(callbackUrl, userID, process.env.G_AUTH_REDIRECT)
   .then((result) => res.json(result))
   .catch((err => res.json(err)))
@@ -587,15 +588,14 @@ exports.google_login_url = async (req, res) => {
 
 exports.google_login_auth = async function(req, res, next) {
   const { code } = req.headers; 
-  //console.log(code)
-
+  
   async function callNewOauth() {
     try {
       console.log('call oath2client')
       const oauth2Client = newOauth2Client(process.env.G_AUTH_REDIRECT);
       const { tokens } = await oauth2Client.getToken(code);
       oauth2Client.setCredentials(tokens);
-      //console.log(tokens)
+      console.log(tokens)
       return tokens;
     } catch(err) {
       console.log(err)
@@ -613,13 +613,14 @@ exports.google_login_auth = async function(req, res, next) {
     }
   };
 
-  async function updateTokens(userID, access_token, expiry_date) {
+  async function updateTokens(userID, access_token, expiry_date, refresh_token) {
     try {
         const filter = { userID: userID };
         const update = {
           access_token,
-          expiry_date
+          expiry_date,
         }
+        if (refresh_token) update.refresh_token = refresh_token;
         const response = await Tokens.findOneAndUpdate(filter, update, { new: true });
         return response;
     } catch (err) {
@@ -677,7 +678,8 @@ exports.google_login_auth = async function(req, res, next) {
   }
   if (currentUser.length === 1) {
     const {id, first_name, googleFit, dataSourceIds} = currentUser[0];
-    updateTokens(id, tokens.access_token, tokens.expiry_date)
+    const {access_token, expiry_date, refresh_token} = tokens;
+    updateTokens(id, access_token, expiry_date, refresh_token);
     
     if (checkTokenAUD(aud)) {
       const myExp = generateTokenExpiryDate(14)

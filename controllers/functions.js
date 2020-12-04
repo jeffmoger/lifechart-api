@@ -34,7 +34,8 @@ async function saveTokenToProfile(userID, credentials) {
 function callAuthToRefreshToken(token){
     const oauth2Client = newOauth2Client();
     oauth2Client.setCredentials({ refresh_token: token.refresh_token });
-    return oauth2Client.refreshAccessToken();
+    const tokens = oauth2Client.getAccessToken();
+    return tokens;
 };
 
 function checkTokenHasExpired(token) {
@@ -45,6 +46,10 @@ function checkTokenHasExpired(token) {
         console.log(`Token expired ${expiryDate}.`)
         return true
     }
+}
+
+function isRefreshTokenAvailable(token) {
+    token.refresh_token ? true : false;
 }
 
 
@@ -328,10 +333,8 @@ function getDataSource(data_type, checkDataSourceId) {
 
 
 module.exports = {
-    setDateRange,
     getUserProfile,
     newOauth2Client,
-    callGoogle,
     returnAuthUrl,
     updateGoogleFit,
     saveTokens,

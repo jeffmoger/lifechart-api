@@ -595,7 +595,6 @@ exports.google_login_auth = async function(req, res, next) {
       const oauth2Client = newOauth2Client(process.env.G_AUTH_REDIRECT);
       const { tokens } = await oauth2Client.getToken(code);
       oauth2Client.setCredentials(tokens);
-      console.log(tokens)
       return tokens;
     } catch(err) {
       console.log(err)

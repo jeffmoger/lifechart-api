@@ -374,7 +374,6 @@ exports.move_data_from_google = function(req, res, next) {
         .then(async token => {
           if (token) {
             if (checkTokenHasExpired(token)) {
-              console.log(`token: ${token}`)
               console.log('Saved token has expired. Using refresh_token to call oAuth')
               return await callAuthToRefreshToken(token);
             } else {

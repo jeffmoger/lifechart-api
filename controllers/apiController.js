@@ -374,9 +374,9 @@ exports.move_data_from_google = function(req, res, next) {
         .then(async token => {
           if (token) {
             if (checkTokenHasExpired(token)) {
+              console.log(`token: ${token}`)
               console.log('Saved token has expired. Using refresh_token to call oAuth')
-              const { credentials } = await callAuthToRefreshToken(token)
-              return credentials
+              return await callAuthToRefreshToken(token);
             } else {
               console.log('Saved token from profile was still good.')
               token.fromProfile = true
@@ -393,10 +393,11 @@ exports.move_data_from_google = function(req, res, next) {
             console.log('Skipping save to profile')
             return credentials
           }
+          const newTokens = credentials.res.data;
           console.log(`New token will expire:  ${credentials.expiry_date}.`)
           console.log(`Saving new token to profile.`)
-          saveTokenToProfile(userID, credentials);
-          return credentials
+          saveTokenToProfile(userID, newTokens);
+          return newTokens
         })
         .then(tokens => moveDataFromGoogleToMongoDB(days, userID, tokens, dataSourceIdArray))
         .then(response => {

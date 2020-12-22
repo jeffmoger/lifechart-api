@@ -623,6 +623,7 @@ exports.google_login_auth = async function(req, res, next) {
         }
         if (refresh_token) update.refresh_token = refresh_token;
         const response = await Tokens.findOneAndUpdate(filter, update, { new: true });
+        console.log(response);
         return response;
     } catch (err) {
         console.log(err);
@@ -681,7 +682,7 @@ exports.google_login_auth = async function(req, res, next) {
     console.log('Currently registered');
     const {id, first_name, googleFit, dataSourceIds} = currentUser[0];
     const {access_token, expiry_date, refresh_token} = tokens;
-    updateTokens(id, access_token, expiry_date, refresh_token);   
+    updateTokens(id, access_token, expiry_date, refresh_token);
     if (checkTokenAUD(aud)) {
       const myExp = generateTokenExpiryDate(14);
       const myToken = generateJWT(first_name, id, myExp);

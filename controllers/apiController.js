@@ -622,7 +622,7 @@ exports.google_login_auth = async function(req, res, next) {
           expiry_date,
         }
         if (refresh_token) update.refresh_token = refresh_token;
-        const response = await Tokens.findOneAndUpdate(filter, update, { new: true });
+        const response = await Tokens.findOneAndUpdate(filter, update, { new: true, upsert: true });
         console.log(response);
         return response;
     } catch (err) {

@@ -317,9 +317,6 @@ Get list of DataSourceIds from Google_____________________________________*/
 exports.data_sources = async function(req, res, next) {
   const userID = req.payload.id
   const token = await getUserTokenFromProfile(userID)
-  console.log(userID);
-  console.log(token)
-  //left unsolved the problem of why the user has no token/refreshtoken stored. This is an edge case that shouldn't happen ordinarily, but the right thing to do is to turn off googleFit setting in profile, which would force the user to reconnect.
   if (!token) return res.status(401).json({error: 'no tokens found'});
   if (!token.refresh_token) return res.status(401).json({error: 'no refresh token present in collection'});
   if (token) {

@@ -677,15 +677,19 @@ exports.google_login_auth = async function(req, res, next) {
   }
   if (currentUser.length === 1) {
     console.log('Currently registered');
-    const {id, first_name, googleFit, dataSourceIds} = currentUser[0];
-    const {access_token, expiry_date, refresh_token} = tokens;
+    let {id, first_name, googleFit, dataSourceIds} = currentUser[0];
+    let {access_token, expiry_date, refresh_token} = tokens;
     updateTokens(id, access_token, expiry_date, refresh_token);
     console.log(dataSourceIds)
+    if (!dataSourceIds || dataSourceIds && dataSourceIds.length === 0) {
+      let {data} = await getDataSourcesFromGoogle(access_token);
+      dataSourceIds = data;
+    }
+
     
     if (checkTokenAUD(aud)) {
-      const myExp = generateTokenExpiryDate(14)
-      const myToken = generateJWT(first_name, id, myExp)
-      //const {data} = await getDataSourcesFromGoogle(token)
+      const myExp = generateTokenExpiryDate(14);
+      const myToken = generateJWT(first_name, id, myExp);
       return res.json({ user: { token: myToken, exp: myExp, googleFit, dataSourceIds }});
     }
   }

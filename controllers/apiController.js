@@ -680,11 +680,12 @@ exports.google_login_auth = async function(req, res, next) {
     let {id, first_name, googleFit, dataSourceIds} = currentUser[0];
     let {access_token, expiry_date, refresh_token} = tokens;
     updateTokens(id, access_token, expiry_date, refresh_token);
-    console.log(dataSourceIds)
+    console.log(dataSourceIds);
     if (!dataSourceIds || dataSourceIds && dataSourceIds.length === 0) {
       let {data} = await getDataSourcesFromGoogle(access_token);
       dataSourceIds = data;
     }
+    console.log(dataSourceIds);
 
     
     if (checkTokenAUD(aud)) {

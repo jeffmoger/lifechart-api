@@ -683,6 +683,12 @@ exports.google_login_auth = async function(req, res, next) {
     const {id, first_name, googleFit, dataSourceIds} = currentUser[0];
     const {access_token, expiry_date, refresh_token} = tokens;
     updateTokens(id, access_token, expiry_date, refresh_token);
+    console.log({
+      id,
+      access_token,
+      expiry_date,
+      refresh_token
+    })
     if (checkTokenAUD(aud)) {
       const myExp = generateTokenExpiryDate(14);
       const myToken = generateJWT(first_name, id, myExp);

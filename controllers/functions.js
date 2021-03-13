@@ -99,6 +99,8 @@ async function returnAuthUrl(callbackUrl, userID, redirect_url = process.env.G_R
     });
 
     let urlStatus = await callGoogle(authUrl);
+    console.log('callGoogle Status:')
+    console.log(urlStatus)
     if (urlStatus === 200) {
         return(authUrl)
     }

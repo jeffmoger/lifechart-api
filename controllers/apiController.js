@@ -579,7 +579,7 @@ Google Auth Login    ____________________________________________________*/
 exports.google_login_url = async (req, res) => {
   const callbackUrl = req.path;
   const userID = 'none';
-  //console.log(callbackUrl);
+  console.log('Calling returnAuthUrl...');
   await returnAuthUrl(callbackUrl, userID, process.env.G_AUTH_REDIRECT)
   .then((result) => res.json(result))
   .catch((err => res.json(err)))

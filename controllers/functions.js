@@ -152,7 +152,7 @@ function getDataSourcesFromGoogle(access_token) {
 }
 
 
-async function getActivity(token, startTime, endTime, dataSourceId, exclude) {
+async function getActivity(token, startTime, endTime, dataSourceId, exclude, tz='America/Vancouver') {
        
     let fitArray = [];
     let dataSetArray = [];
@@ -173,7 +173,7 @@ async function getActivity(token, startTime, endTime, dataSourceId, exclude) {
                     period: {
                         type: 'day',
                         value: 1,
-                        timeZoneId: 'America/Vancouver'
+                        timeZoneId: tz
                     }
                   },
                 startTimeMillis: startTime,
@@ -206,6 +206,7 @@ async function getActivity(token, startTime, endTime, dataSourceId, exclude) {
                 dataSetArray.push(fitObject);
             }
         }
+        console.log(dataSetArray)
         return dataSetArray
     } catch (err) {
         console.log('getActivity Catch: ' + err + ' - ' + dataSourceId);

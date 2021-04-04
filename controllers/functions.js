@@ -281,6 +281,7 @@ const lookupTimestamp = async (start, end, userID, dataTypeName) => {
 
 async function moveDataFromGoogleToMongoDB(days, userID, token, dataTypeObj) {
     let [ start, end ] = setDateRange(days);
+    console.log([start, end])
     const countArray = [];
     const promises = dataTypeObj.map(async (dataName, idx) => {
         //console.log(`Received ${dataName[0]} ${idx+1}:`),

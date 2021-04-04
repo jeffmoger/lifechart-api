@@ -172,8 +172,8 @@ async function getActivity(token, startTime, endTime, dataSourceId, exclude, tz=
                 bucketByTime: {
                     period: {
                         type: 'day',
-                        value: 1
-                        //timeZoneId: tz
+                        value: 1,
+                        timeZoneId: tz
                     }
                   },
                 startTimeMillis: startTime,

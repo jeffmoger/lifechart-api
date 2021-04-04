@@ -206,7 +206,7 @@ async function getActivity(token, startTime, endTime, dataSourceId, exclude, tz=
                 dataSetArray.push(fitObject);
             }
         }
-        console.log(dataSetArray)
+        //console.log(dataSetArray)
         return dataSetArray
     } catch (err) {
         console.log('getActivity Catch: ' + err + ' - ' + dataSourceId);

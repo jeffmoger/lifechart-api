@@ -1,5 +1,5 @@
 const axios = require('axios');
-const moment = require('moment');
+const moment = require('moment-timezone');
 const { google} = require('googleapis');
 const _ = require('lodash')
 
@@ -254,8 +254,8 @@ async function saveFitData(userID, array, dataTypeName, countArray) {
     }
 }
 
-function setDateRange(days){
-    let end = moment().startOf('day');
+function setDateRange(days, tz='America/Vancouver'){
+    let end = moment().tz(tz).startOf('day');
     end.add(1, 'days');
     let start = moment().startOf('day');
     start.subtract(days, 'days');

@@ -156,6 +156,7 @@ async function getActivity(token, startTime, endTime, dataSourceId, exclude, tz=
        
     let fitArray = [];
     let dataSetArray = [];
+    console.log
     try {
         const result = await axios({
             method: "POST",
@@ -181,6 +182,7 @@ async function getActivity(token, startTime, endTime, dataSourceId, exclude, tz=
                 }
         });
         fitArray = result.data.bucket
+        console.log(fitArray);
         for(const dataSet of fitArray) {
             let fitObject = {};
             const match = exclude.filter(item => 

@@ -258,7 +258,10 @@ async function saveFitData(userID, array, dataTypeName, countArray) {
 }
 
 function setDateRange(days, tz='America/Vancouver'){
+    let serverTime = moment().startOf('day');
     let end = moment().tz(tz).startOf('day');
+    console.log('serverTime: ' + serverTime);
+    console.log('end: ' + end);
     end.add(1, 'days');
     let start = moment().startOf('day');
     start.subtract(days, 'days');

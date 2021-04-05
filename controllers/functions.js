@@ -263,7 +263,7 @@ function setDateRange(days, tz='America/Vancouver'){
     console.log('serverTime: ' + serverTime);
     console.log('end: ' + end);
     end.add(1, 'days');
-    let start = moment().startOf('day');
+    let start = moment().tz(tz).startOf('day');
     start.subtract(days, 'days');
     const rangeString = start.format('lll') + ' until ' + end.format('lll');
     const intStart = parseInt(start.format('x'), 10);

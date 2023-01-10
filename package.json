@@ -15,7 +15,7 @@
     "dotenv": "^8.2.0",
     "errorhandler": "^1.5.1",
     "express": "^4.16.4",
-    "express-jwt": "^5.3.1",
+    "express-jwt": "^8.3.0",
     "express-validator": "^6.4.0",
     "googleapis": "^49.0.0",
     "http-errors": "~1.6.3",
@@ -27,7 +27,7 @@
     "morgan": "~1.9.1",
     "passport": "^0.4.1",
     "passport-google-oauth20": "^2.0.0",
-    "passport-jwt": "^4.0.0",
+    "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
     "path": "^0.12.7",
     "pug": "2.0.0-beta11"
